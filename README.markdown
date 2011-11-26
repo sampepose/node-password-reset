@@ -54,7 +54,7 @@ Create a new password reset session `forgot` with some options `opts`.
 returns the email body as a string.
 
 The rest of the options are passed directly to
-the [smtpc module](https://github.com/dresende/node-smtp)
+the [mailer module](https://github.com/Marak/node_mailer)
 with reasonable defaults.
 
 When the user clicks on the uri link `forgot` emits a `"request", req, res`
