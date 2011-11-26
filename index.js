@@ -17,7 +17,8 @@ module.exports = function (opts) {
         
         var body = opts.body
             ? opts.body(uri, email)
-            : 'Please click this link to reset your password:\r\n' + uri
+            : 'Please click this link to reset your password:\r\n'
+                + encodeURI(uri)
         ;
         
         var msg = {
@@ -59,7 +60,7 @@ function Forgot (opts) {
 }
 
 Forgot.prototype.generate = function () {
-    var buf = new Buffer(64);
+    var buf = new Buffer(16);
     for (var i = 0; i < buf.length; i++) {
         buf[i] = Math.floor(Math.random() * 256);
     }
