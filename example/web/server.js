@@ -6,8 +6,8 @@ app.use(express.bodyParser());
 
 var forgot = require('../../')({
     uri : 'http://localhost:8080/_password_reset',
-    host : 'localhost',
     from : 'password-robot@localhost',
+    host : 'localhost', port : 25,
 });
 app.use(forgot.middleware);
 

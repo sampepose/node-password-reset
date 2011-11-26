@@ -1,4 +1,4 @@
-var smtpc = require('smtpc');
+var mailer = require('mailer');
 var url = require('url');
 var EventEmitter = require('events').EventEmitter;
 
@@ -22,26 +22,29 @@ module.exports = function (opts) {
         
         var msg = {
             host : opts.host || 'localhost',
+            domain : opts.domain || 'localhost',
             port : opts.port || 25,
             to : [ email ],
             from : opts.from || 'password-robot@localhost',
-            content : {
-                subject : opts.subject || 'password reset confirmation',
-                'content-type' : opts['content-type'] || 'text/plain',
-                content : body,
-            },
-            failure : function (err) {
-                if (cb) cb(new Error(err.message));
+            subject : opts.subject || 'password reset confirmation',
+            body : body,
+        };
+        [ 'ssl', 'authentication', 'username', 'password' ]
+            .forEach(function (name) {
+                if (opts[name] !== undefined) msg[name] = opts[name];
+            })
+        ;
+        mailer.send(msg, function (err) {
+            if (err) {
+                if (cb) cb(err);
                 session.emit('failure', err);
                 delete reset.sessions[session.id];
-            },
-            success : function () {
+            }
+            else {
                 if (cb) cb(null);
                 session.emit('success');
             }
-        };
-        if (opts.auth) msg.auth = opts.auth;
-        smtpc.sendmail(msg);
+        });
         
         return session;
     };
