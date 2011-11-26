@@ -1,71 +1,73 @@
-var mailer = require('mailer');
+var smtpc = require('smtpc');
 var url = require('url');
+var EventEmitter = require('events').EventEmitter;
 
 module.exports = function (opts) {
-    if (!opts) opts = {};
-    else if (typeof opts === 'string') {
-        opts = { mount : opts };
+    if (typeof opts === 'string') {
+        opts = { uri : opts };
     }
-    if (!opts.mount) opts.mount = '/_password_reset';
     
-    var reset = new Reset(opts);
-    var self = function (req, email, cb) {
-        var g = reset.generate(req, email, cb);
-        if (!g) return;
+    var reset = new Forgot(opts);
+    
+    var self = function (email, cb) {
+        var session = reset.generate();
+        if (!session) return;
+        
+        var uri = session.uri = opts.uri + '?' + session.id;
         
         var body = opts.body
-            ? opts.body(g.uri)
-            : 'Please click this link to reset your password:\r\n' + g.uri
+            ? opts.body(uri, email)
+            : 'Please click this link to reset your password:\r\n' + uri
         ;
         
-        var email = {
+        var msg = {
             host : opts.host || 'localhost',
             port : opts.port || 25,
-            to : email,
-            from : opts.from,
-            subject : opts.subject || 'password reset confirmation',
-            body : body,
-        };
-        
-        mailer.send(email, function (err, res) {
-            if (err) {
-                cb(err);
-                delete reset.sessions[g.id];
+            to : [ email ],
+            from : opts.from || 'password-robot@localhost',
+            content : {
+                subject : opts.subject || 'password reset confirmation',
+                'content-type' : opts['content-type'] || 'text/plain',
+                content : body,
+            },
+            failure : function (err) {
+                if (cb) cb(new Error(err.message));
+                session.emit('failure', err);
+                delete reset.sessions[session.id];
+            },
+            success : function () {
+                if (cb) cb(null);
+                session.emit('success');
             }
-        });
+        };
+        if (opts.auth) msg.auth = opts.auth;
+        smtpc.sendmail(msg);
+        
+        return session;
     };
     
     self.middleware = reset.middleware.bind(reset);
     return self;
 };
 
-function Reset (opts) {
+function Forgot (opts) {
     this.sessions = opts.sessions || {};
-    this.mount = opts.mount;
+    this.mount = url.parse(opts.uri);
 }
 
-Reset.prototype.generate = function (req, email, cb) {
-    var host = req.headers.host;
-    if (!host) {
-        cb(new Error('no host header specified'));
-        return;
-    }
-    
+Forgot.prototype.generate = function () {
     var buf = new Buffer(256);
     for (var i = 0; i < buf.length; i++) {
         buf[i] = Math.floor(Math.random() * 256);
     }
     var id = buf.toString('base64');
     
-    this.sessions[id] = cb;
-    return {
-        uri : (req.socket.encrypted ? 'https' : 'http')
-            + '://' + host + this.mount + '?' + id,
-        id : id,
-    };
+    var session = this.sessions[id] = new EventEmitter;
+    session.id = id;
+    return session;
 };
-    
-Reset.prototype.middleware = function (req, res, next) {
+
+Forgot.prototype.middleware = function (req, res, next) {
     if (!next) next = function (err) {
         if (err) res.end(err)
     }
@@ -73,7 +75,8 @@ Reset.prototype.middleware = function (req, res, next) {
     var u = url.parse(req.url);
     var id = u.query;
     
-    if (u.pathname !== this.mount) {
+    if (req.headers.host !== this.mount.host
+    || u.pathname !== this.mount.pathname) {
         next()
     }
     else if (!id) {
@@ -85,6 +88,6 @@ Reset.prototype.middleware = function (req, res, next) {
         next('auth token expired');
     }
     else {
-        this.sessions[id](null, req, res);
+        this.sessions[id].emit('request', req, res);
     }
 };

@@ -4,19 +4,25 @@ var app = express.createServer();
 app.use(express.static(__dirname));
 app.use(express.bodyParser());
 
-var forgot = require('../../')();
+var forgot = require('../../')({
+    uri : 'http://localhost:8080/_password_reset',
+    host : 'localhost',
+    from : 'password-robot@localhost',
+});
 app.use(forgot.middleware);
 
 app.post('/forgot', function (req, res) {
-    forgot(req, req.params.email, function (err, req_, res_) {
+    var reset = forgot(req.body.email, function (err) {
         if (err) {
             res.statusCode = 500;
-            res.end(err);
+            res.end('Error sending message: ' + err);
         }
-        else res_.end('password reset')
+        else res.end('Check your inbox for a password reset message.')
     });
     
-    res.end('Check your inbox for a password reset message.');
+    reset.on('request', function (req_, res_) {
+        res_.end('password reset');
+    });
 });
 
 app.listen(8080);
