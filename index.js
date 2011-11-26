@@ -59,7 +59,7 @@ function Forgot (opts) {
 }
 
 Forgot.prototype.generate = function () {
-    var buf = new Buffer(256);
+    var buf = new Buffer(64);
     for (var i = 0; i < buf.length; i++) {
         buf[i] = Math.floor(Math.random() * 256);
     }
