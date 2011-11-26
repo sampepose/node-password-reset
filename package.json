@@ -18,7 +18,7 @@
         "example" : "example"
     },
     "dependencies" : {
-        "mailer" : "0.6.x"
+        "mailer" : "0.4.52"
     },
     "devDependencies" : {
         "express" : "2.5.x"
