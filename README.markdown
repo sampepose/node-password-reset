@@ -30,7 +30,7 @@ app.post('/forgot', function (req, res) {
     });
     
     reset.on('request', function (req_, res_) {
-        res_.end('password reset');
+        res_.end('give the user some password boxes here');
     });
 });
 

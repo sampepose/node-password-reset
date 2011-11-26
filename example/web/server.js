@@ -4,7 +4,7 @@ var app = express.createServer();
 app.use(express.static(__dirname));
 app.use(express.bodyParser());
 
-var forgot = require('../../')({
+var forgot = require('password-reset')({
     uri : 'http://localhost:8080/_password_reset',
     from : 'password-robot@localhost',
     host : 'localhost', port : 25,
@@ -21,7 +21,7 @@ app.post('/forgot', function (req, res) {
     });
     
     reset.on('request', function (req_, res_) {
-        res_.end('password reset');
+        res_.end('give the user some password boxes here');
     });
 });
 
