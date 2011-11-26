@@ -1,0 +1,35 @@
+{
+    "name" : "password-reset",
+    "description" : "middleware for password reset emails",
+    "version" : "0.0.0",
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/substack/node-password-reset.git"
+    },
+    "main" : "index.js",
+    "keywords" : [
+        "middleware",
+        "web",
+        "passwore",
+        "reset"
+    ],
+    "directories" : {
+        "lib" : ".",
+        "example" : "example"
+    },
+    "dependencies" : {
+        "mailer" : "0.6.x"
+    },
+    "devDependencies" : {
+        "express" : "2.5.x"
+    },
+    "engines" : {
+        "node" : ">=0.4.0"
+    },
+    "license" : "MIT",
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    }
+}
