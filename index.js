@@ -59,6 +59,7 @@ module.exports = function (opts) {
 function Forgot (opts) {
     this.sessions = opts.sessions || {};
     this.mount = url.parse(opts.uri);
+    this.mount.port = this.mount.port || 80;
 }
 
 Forgot.prototype.generate = function () {
@@ -78,10 +79,12 @@ Forgot.prototype.middleware = function (req, res, next) {
         if (err) res.end(err)
     }
     
-    var u = url.parse(req.url);
+    var u = url.parse('http://' + req.headers.host + req.url);
+    u.port = u.port || 80;
     var id = u.query;
     
-    if (req.headers.host !== this.mount.host
+    if (u.hostname !== this.mount.hostname
+    || u.port !== this.mount.port
     || u.pathname !== this.mount.pathname) {
         next()
     }
