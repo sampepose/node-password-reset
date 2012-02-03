@@ -7,31 +7,48 @@ example
 -------
 
 ``` js
+var fs = require('fs');
 var express = require('express');
 var app = express.createServer();
 
 app.use(express.static(__dirname));
-app.use(express.bodyParser());
+app.use(require('sesame')()); // for sessions
 
 var forgot = require('password-reset')({
-    uri : 'http://localhost:8080/_password_reset',
+    uri : 'http://localhost:8080/password_reset',
     from : 'password-robot@localhost',
-    host : 'localhost', port : 25
+    host : 'localhost', port : 25,
 });
 app.use(forgot.middleware);
+app.use(function (req, res, next) {
+    next();
+});
 
-app.post('/forgot', function (req, res) {
-    var reset = forgot(req.body.email, function (err) {
-        if (err) {
-            res.statusCode = 500;
-            res.end('Error sending message: ' + err);
-        }
+app.post('/forgot', express.bodyParser(), function (req, res) {
+    var email = req.body.email;
+    var reset = forgot(email, function (err) {
+        if (err) res.end('Error sending message: ' + err)
         else res.end('Check your inbox for a password reset message.')
     });
     
     reset.on('request', function (req_, res_) {
-        res_.end('give the user some password boxes here');
+        req_.session.reset = { email : email, id : reset.id };
+        fs.createReadStream(__dirname + '/forgot.html').pipe(res_);
     });
+});
+
+app.post('/reset', express.bodyParser(), function (req, res) {
+    if (!req.session.reset) return res.end('reset token not set');
+    
+    var password = req.body.password;
+    var confirm = req.body.confirm;
+    if (password !== confirm) return res.end('passwords do not match');
+    
+    // update the user db here
+    
+    forgot.expire(req.session.reset.id);
+    delete req.session.reset;
+    res.end('password reset');
 });
 
 app.listen(8080);
@@ -59,8 +76,8 @@ The rest of the options are passed directly to
 When the user clicks on the uri link `forgot` emits a `"request", req, res`
 event.
 
-forgot(email, cb)
------------------
+var reset = forgot(email, cb)
+-----------------------------
 
 Send a password reset email to the `email` address.
 `cb(err)` fires when the email has been sent.
@@ -70,22 +87,36 @@ forgot.middleware(req, res, next)
 
 Use this middleware function to intercept requests on the `opts.uri`.
 
+forgot.expire(id)
+-----------------
+
+Prevent a session from being used again. Call this after you have successfully
+reset the password.
+
+attributes
+==========
+
+reset.id
+--------
+
+Pass this value to `forgot.expire(id)`.
+
 events
 ======
 
-'request', req, res
--------------------
+reset.on('request', function (req, res) { ... })
+------------------------------------------------
 
 Emitted when the user clicks on the password link from the email.
 
-'failure', err
---------------
+reset.on('failure', function (err) { ... })
+-------------------------------------------
 
 Emitted when an error occurs sending email. You can also listen for this event
 in `forgot()`'s callback.
 
-'success'
----------
+reset.on('success', function () {})
+-----------------------------------
 
 Emitted when an email is successfully sent.
 

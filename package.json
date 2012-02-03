@@ -23,6 +23,7 @@
     },
     "devDependencies" : {
         "express" : "2.5.x",
+        "sesame" : "0.1.x",
         "smtp-protocol" : "0.1.x"
     },
     "engines" : {
