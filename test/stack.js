@@ -96,7 +96,7 @@ test('reset success', function (t) {
                     t.equal(b, 'password reset');
                     reset(function (e, b) {
                         if (e) t.fail(e);
-                        t.equal(b, 'reset token not set');
+                        t.equal(b, 'reset token not set', 'expiry check');
                         t.end();
                     });
                 });
@@ -110,6 +110,16 @@ test('reset success', function (t) {
             function (e, r, b) { cb(e, b) }
         );
     }
+});
+
+test('invalid token', function (t) {
+    var opts = {
+        uri : 'http://localhost:' + ports.http + '/password_reset?beepboop==',
+    }
+    request(opts, function (e, r, b) {
+        t.equal(b, 'auth token expired');
+        t.end();
+    });
 });
 
 tap.on('end', function () {
