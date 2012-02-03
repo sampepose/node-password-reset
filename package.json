@@ -31,6 +31,9 @@
     "engines" : {
         "node" : ">=0.4.0"
     },
+    "script" : {
+        "test" : "tap test/*.js"
+    },
     "license" : "MIT",
     "author" : {
         "name" : "James Halliday",
