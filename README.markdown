@@ -20,9 +20,6 @@ var forgot = require('password-reset')({
     host : 'localhost', port : 25,
 });
 app.use(forgot.middleware);
-app.use(function (req, res, next) {
-    next();
-});
 
 app.post('/forgot', express.bodyParser(), function (req, res) {
     var email = req.body.email;

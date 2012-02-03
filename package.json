@@ -18,13 +18,15 @@
         "example" : "example"
     },
     "dependencies" : {
-        "pony" : "~0.0.1",
+        "pony" : "~0.0.2",
         "ent" : "0.0.x"
     },
     "devDependencies" : {
+        "tap" : "0.1.x",
         "express" : "2.5.x",
         "sesame" : "0.1.x",
-        "smtp-protocol" : "0.1.x"
+        "smtp-protocol" : "0.1.x",
+        "request" : "2.9.x"
     },
     "engines" : {
         "node" : ">=0.4.0"
