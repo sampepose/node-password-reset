@@ -1,7 +1,7 @@
 {
     "name" : "password-reset",
     "description" : "middleware for password reset emails",
-    "version" : "0.0.2",
+    "version" : "0.1.0",
     "repository" : {
         "type" : "git",
         "url" : "git://github.com/substack/node-password-reset.git"
@@ -18,10 +18,11 @@
         "example" : "example"
     },
     "dependencies" : {
-        "mailer" : "0.4.52"
+        "pony" : "~0.0.1"
     },
     "devDependencies" : {
-        "express" : "2.5.x"
+        "express" : "2.5.x",
+        "smtp-protocol" : "0.1.x"
     },
     "engines" : {
         "node" : ">=0.4.0"

@@ -1,11 +1,19 @@
-var mailer = require('mailer');
 var url = require('url');
 var EventEmitter = require('events').EventEmitter;
+var pony = require('pony');
+var ent = require('ent');
 
 module.exports = function (opts) {
     if (typeof opts === 'string') {
         opts = { uri : opts };
     }
+    
+    var send = pony({
+        host : opts.host || 'localhost',
+        domain : opts.domain || opts.host || 'localhost',
+        port : opts.port || 25,
+        from : opts.from || 'password-robot@localhost',
+    });
     
     var reset = new Forgot(opts);
     
@@ -15,35 +23,29 @@ module.exports = function (opts) {
         
         var uri = session.uri = opts.uri + '?' + session.id;
         
-        var body = opts.body
-            ? opts.body(uri, email)
-            : 'Please click this link to reset your password:\r\n'
-                + encodeURI(uri)
-        ;
-        
-        var msg = {
-            host : opts.host || 'localhost',
-            domain : opts.domain || 'localhost',
-            port : opts.port || 25,
-            to : [ email ],
-            from : opts.from || 'password-robot@localhost',
-            subject : opts.subject || 'password reset confirmation',
-            body : body,
-        };
-        [ 'ssl', 'authentication', 'username', 'password' ]
-            .forEach(function (name) {
-                if (opts[name] !== undefined) msg[name] = opts[name];
-            })
-        ;
-        mailer.send(msg, function (err) {
+        send({ to : email }, function (err, req) {
             if (err) {
                 if (cb) cb(err);
-                session.emit('failure', err);
                 delete reset.sessions[session.id];
             }
             else {
-                if (cb) cb(null);
-                session.emit('success');
+                req.url = req.uri = uri;
+                req.setHeader('content-type', 'text/html');
+                req.setHeader(
+                    'subject',
+                    opts.subject || 'password reset confirmation'
+                );
+                if (cb) cb(null, req)
+                if (cb && cb.length <= 1) {
+                    req.end([
+                        'Click this link to reset your password:\r\n',
+                        '<br>',
+                        '<a href="' + encodeURI(uri) + '">',
+                        ent.encode(uri),
+                        '</a>',
+                        ''
+                    ].join('\r\n'));
+                }
             }
         });
         
