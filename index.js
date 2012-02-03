@@ -53,6 +53,11 @@ module.exports = function (opts) {
     };
     
     self.middleware = reset.middleware.bind(reset);
+    
+    self.expire = function (id) {
+        delete reset.sessions[id];
+    };
+    
     return self;
 };
 

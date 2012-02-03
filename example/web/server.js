@@ -12,7 +12,6 @@ var forgot = require('../../')({
 });
 app.use(forgot.middleware);
 app.use(function (req, res, next) {
-    console.dir(req.session.resetEmail);
     next();
 });
 
@@ -24,13 +23,13 @@ app.post('/forgot', express.bodyParser(), function (req, res) {
     });
     
     reset.on('request', function (req_, res_) {
-        req_.session.resetEmail = email;
+        req_.session.reset = { email : email, id : reset.id };
         fs.createReadStream(__dirname + '/forgot.html').pipe(res_);
     });
 });
 
 app.post('/reset', express.bodyParser(), function (req, res) {
-    if (!req.session.resetEmail) return res.end('reset token not set');
+    if (!req.session.reset) return res.end('reset token not set');
     
     var password = req.body.password;
     var confirm = req.body.confirm;
@@ -38,7 +37,8 @@ app.post('/reset', express.bodyParser(), function (req, res) {
     
     // update the user db here
     
-    delete req.session.resetEmail;
+    forgot.expire(req.session.reset.id);
+    delete req.session.reset;
     res.end('password reset');
 });
 
