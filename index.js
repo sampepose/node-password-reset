@@ -84,7 +84,7 @@ Forgot.prototype.middleware = function (req, res, next) {
     var id = u.query;
     
     if (u.hostname !== this.mount.hostname
-    || u.port !== this.mount.port
+    || parseInt(u.port, 10) !== parseInt(this.mount.port, 10)
     || u.pathname !== this.mount.pathname) {
         next()
     }
