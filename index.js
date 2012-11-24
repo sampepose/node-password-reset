@@ -1,63 +1,59 @@
 var url = require('url');
 var EventEmitter = require('events').EventEmitter;
-var pony = require('pony');
+var mailer = require('nodemailer');
 var ent = require('ent');
 
 module.exports = function (opts) {
     if (typeof opts === 'string') {
         opts = { uri : opts };
     }
-    
-    var send = pony({
-        host : opts.host || 'localhost',
-        domain : opts.domain || opts.host || 'localhost',
-        port : opts.port || 25,
-        from : opts.from || 'password-robot@localhost',
-    });
-    
+
+    var transport;
+    if (opts.transportType && opts.transportOptions) {
+        transport = mailer.createTransport(opts.transportType, opts.transportOptions);
+    } else {
+        console.log("No transport type specified!");
+    }
+
     var reset = new Forgot(opts);
-    
+
     var self = function (email, cb) {
         var session = reset.generate();
         if (!session) return;
-        
+
         var uri = session.uri = opts.uri + '?' + session.id;
-        
-        send({ to : email }, function (err, req) {
-            if (err) {
-                if (cb) cb(err);
+
+        transport.sendMail({
+            sender  : opts.from || 'nodepasswordreset@localhost',
+            to      : email,
+            subject : opts.subject || 'Password reset request',
+            text : opts.text || "",
+            html :  opts.html || [
+                'Click this link to reset your password:\r\n',
+                '<br>',
+                '<a href="' + encodeURI(uri) + '">',
+                ent.encode(uri),
+                '</a>',
+                ''
+            ].join('\r\n')
+        }, function (error, success) {
+            if (error) {
+                if (cb.error) cb.error(error);
                 delete reset.sessions[session.id];
-            }
-            else {
-                req.url = req.uri = uri;
-                req.setHeader('content-type', 'text/html');
-                req.setHeader(
-                    'subject',
-                    opts.subject || 'password reset confirmation'
-                );
-                if (cb) cb(null, req)
-                if (cb && cb.length <= 1) {
-                    req.end([
-                        'Click this link to reset your password:\r\n',
-                        '<br>',
-                        '<a href="' + encodeURI(uri) + '">',
-                        ent.encode(uri),
-                        '</a>',
-                        ''
-                    ].join('\r\n'));
-                }
+            } else {
+                if(cb.success) cb.success(success)
             }
         });
-        
+
         return session;
     };
-    
+
     self.middleware = reset.middleware.bind(reset);
-    
+
     self.expire = function (id) {
         delete reset.sessions[id];
     };
-    
+
     return self;
 };
 
@@ -73,7 +69,7 @@ Forgot.prototype.generate = function () {
         buf[i] = Math.floor(Math.random() * 256);
     }
     var id = buf.toString('base64');
-    
+
     var session = this.sessions[id] = new EventEmitter;
     session.id = id;
     return session;
@@ -83,11 +79,11 @@ Forgot.prototype.middleware = function (req, res, next) {
     if (!next) next = function (err) {
         if (err) res.end(err)
     }
-    
+
     var u = url.parse('http://' + req.headers.host + req.url);
     u.port = u.port || 80;
     var id = u.query;
-    
+
     if (u.hostname !== this.mount.hostname
     || parseInt(u.port, 10) !== parseInt(this.mount.port, 10)
     || u.pathname !== this.mount.pathname) {
