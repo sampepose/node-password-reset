@@ -3,8 +3,7 @@ password-reset
 
 middleware for managing password reset emails
 
-[![build
-status](https://secure.travis-ci.org/substack/node-password-reset.png)](http://travis-ci.org/substack/node-password-reset)
+TODO: Update this README and example
 
 example
 -------
@@ -133,6 +132,10 @@ license
 =======
 
 MIT/X11
+
+credits to
+==========
+Substack for the original module
 
 test
 ====

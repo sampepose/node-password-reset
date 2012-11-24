@@ -1,16 +1,16 @@
 {
-    "name" : "password-reset",
+    "name" : "password-reset-nodemailer",
     "description" : "middleware for password reset emails",
     "version" : "0.1.4",
     "repository" : {
         "type" : "git",
-        "url" : "git://github.com/substack/node-password-reset.git"
+        "url" : "git://github.com/sampepose/node-password-reset.git"
     },
     "main" : "index.js",
     "keywords" : [
         "middleware",
         "web",
-        "passwore",
+        "password",
         "reset"
     ],
     "directories" : {
@@ -18,7 +18,7 @@
         "example" : "example"
     },
     "dependencies" : {
-        "pony" : "~0.0.2",
+      "nodemailer":"0.3.x",
         "ent" : "0.0.x"
     },
     "devDependencies" : {
@@ -36,8 +36,8 @@
     },
     "license" : "MIT",
     "author" : {
-        "name" : "James Halliday",
-        "email" : "mail@substack.net",
-        "url" : "http://substack.net"
+        "name" : "Sam Pepose",
+        "email" : "sampepose@gmail.com",
+        "url" : ""
     }
 }
