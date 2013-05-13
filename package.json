@@ -1,7 +1,7 @@
 {
     "name" : "password-reset-nodemailer",
-    "description" : "middleware for password reset emails",
-    "version" : "0.1.4",
+    "description" : "Middleware for password reset emails using nodemailer",
+    "version" : "0.0.1",
     "repository" : {
         "type" : "git",
         "url" : "git://github.com/sampepose/node-password-reset.git"
